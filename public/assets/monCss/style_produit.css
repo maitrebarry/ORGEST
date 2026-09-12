@@ -1,0 +1,89 @@
+/* Fixer la hauteur des images et ajouter un espace en haut */
+.product-card .card-img-top {
+    height: 200px; /* Ajuste cette valeur selon ta préférence */
+    object-fit: cover;
+    width: 100%;
+    padding-top: 10px; /* Ajoute un espace en haut pour éviter que l'image touche le bord supérieur */
+    transition: transform 0.5s ease;
+}
+/* .card:hover .card-img-top {
+    transform: rotate(2deg);
+} */
+/* Espacement entre les colonnes (éviter que les cartes soient collées) */
+.product-grid .col {
+    margin-bottom: 20px; /* Espacement entre les cartes sur les lignes */
+}
+
+/* Fixer la hauteur de la carte et s'assurer que tout le contenu est bien agencé */
+.product-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Assurer que le corps de la carte ne se contracte pas et que le contenu est espacé uniformément */
+.product-card .card-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Icônes masquées par défaut */
+.product-card .icon-group {
+    display: none;
+    position: absolute;
+    top: 10%;
+    right: 10px;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+}
+
+/* Afficher les icônes au survol */
+.product-card:hover .icon-group {
+    display: block;
+    opacity: 1;
+}
+
+/* Style des icônes en cercles */
+.product-card .icon-group a {
+    display: block;
+    margin-bottom: 10px;
+    border-radius: 50%;
+    padding: 10px;
+    color: #fff;
+    text-decoration: none;
+    text-align: center;
+}
+
+/* Couleurs spécifiques pour les icônes */
+.product-card .icon-group a.detail-icon {
+    background-color: #007bff;
+}
+
+.product-card .icon-group a.edit-icon {
+    background-color: #28a745;
+}
+
+.product-card .icon-group a.delete-icon {
+    background-color: #dc3545;
+}
+
+.product-card .icon-group a:hover {
+    opacity: 0.8;
+}
+
+/* Centrer les étoiles et les prix */
+.product-card .product-details {
+    text-align: center;
+}
+
+/* Mise en gras des prix */
+.product-card .product-details p {
+    font-weight: bold;
+}
+
+/* Style des icônes Boxicons */
+.bx {
+    font-size: 20px;
+}

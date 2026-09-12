@@ -1,0 +1,316 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --wn-accent: #1d4e89;
+    --wn-accent-2: #f97316;
+    --wn-dark: #123a63;
+    --wn-ring: rgba(29, 78, 137, .16);
+    --wn-accent-light: rgba(29, 78, 137, .08);
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif !important;
+}
+
+/* Cards */
+.card {
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, .06);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+}
+
+.card-header-brand {
+    background-color: var(--wn-accent);
+    color: #fff;
+    border: none;
+    border-radius: 13px 13px 0 0;
+    padding: .9rem 1.25rem;
+}
+
+/* Harmonisation : le bleu de marque partout où Bootstrap utilise "primary"
+   (cartes de statistiques du tableau de bord, badges, textes, bordures...),
+   pour rester cohérent avec les en-têtes de carte, les boutons et la sidebar. */
+.bg-primary {
+    background-color: var(--wn-accent) !important;
+}
+.text-primary {
+    color: var(--wn-accent) !important;
+}
+.border-primary {
+    border-color: var(--wn-accent) !important;
+}
+
+/* Modals : même bleu de marque que les en-têtes de carte, pour harmonie. */
+.modal-content {
+    border: none;
+    border-radius: 14px;
+    overflow: hidden;
+}
+.modal-header {
+    background-color: var(--wn-accent);
+    color: #fff;
+    border: none;
+    padding: .9rem 1.25rem;
+}
+.modal-header .modal-title {
+    color: #fff;
+}
+.modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--wn-accent) 0%, var(--wn-dark) 100%);
+    border: none;
+    box-shadow: 0 8px 20px var(--wn-ring);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background: linear-gradient(135deg, var(--wn-dark) 0%, var(--wn-accent) 100%) !important;
+    box-shadow: 0 10px 24px var(--wn-ring);
+}
+
+/* Forms */
+.form-control,
+.form-select {
+    border-radius: 8px;
+    border-color: #dfe5ee;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--wn-accent);
+    box-shadow: 0 0 0 .2rem var(--wn-ring);
+}
+
+.select2-container--bootstrap4 .select2-selection {
+    border-radius: 8px !important;
+    border-color: #dfe5ee !important;
+}
+
+/* Table */
+.table thead th {
+    text-transform: uppercase;
+    font-size: .72rem;
+    letter-spacing: .04em;
+    color: #64748b;
+    border-bottom-width: 2px;
+}
+
+.table > :not(caption) > * > * {
+    padding: .65rem .5rem;
+}
+
+/* Configuration menu links (KalanNet .config-menu-link / .theme-pill-active pattern) */
+.list-group-item {
+    border-radius: 8px !important;
+    margin-bottom: .25rem;
+    border: none;
+    color: #334155;
+    background: transparent;
+    transition: background .15s, color .15s;
+}
+
+.list-group-item:hover {
+    background: var(--wn-accent-light) !important;
+    color: var(--wn-accent) !important;
+}
+
+.list-group-item.active {
+    background-color: var(--wn-accent);
+    border-color: var(--wn-accent);
+    color: #fff;
+}
+
+/* Modal */
+.modal-content {
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 30px 60px rgba(15, 23, 42, .25);
+}
+
+.modal-header {
+    border-bottom-color: #eef1f5;
+}
+
+.modal-footer {
+    border-top-color: #eef1f5;
+}
+
+/* ============================================================
+   En-tête sidebar : logo textuel « ORGEST » en 3D
+   (police décorative façon "Algerian" + relief)
+   ============================================================ */
+.sidebar-header .logo-3d {
+    font-family: 'Rye', Georgia, serif;
+    font-weight: 400;
+    font-size: 21px;
+    letter-spacing: 0;
+    line-height: 1;
+    white-space: nowrap;
+    margin-left: 2px;
+}
+
+.sidebar-header .logo-3d .w3d-n { margin-left: 5px; }
+
+.sidebar-header .logo-3d .w3d-w {
+    color: #1d4e89;
+    text-shadow: 1px 1px 0 #17406f, 2px 2px 0 #123457, 3px 3px 0 #0d2740, 4px 5px 5px rgba(0, 0, 0, .35);
+}
+
+.sidebar-header .logo-3d .w3d-n {
+    color: #f97316;
+    text-shadow: 1px 1px 0 #d9620c, 2px 2px 0 #b5500a, 3px 3px 0 #8a3d07, 4px 5px 5px rgba(0, 0, 0, .35);
+}
+
+/* Mini logo "WN" affiché uniquement quand la sidebar est repliée */
+.sidebar-header .logo-3d-mini {
+    font-family: 'Rye', Georgia, serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: #d4af37;
+    width: 40px;
+    text-align: center;
+    line-height: 1;
+    text-shadow: 1px 1px 0 #a8842a, 2px 2px 0 #7d621f, 3px 3px 4px rgba(0, 0, 0, .3);
+    display: none;
+}
+
+.wrapper.toggled:not(.sidebar-hovered) .sidebar-header .logo-3d-mini {
+    display: inline-block;
+}
+
+/* ============================================================
+   Signature électronique : zone de dessin
+   ============================================================ */
+.signature-pad-wrap {
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #fff;
+    position: relative;
+}
+
+.signature-pad-wrap canvas {
+    width: 100%;
+    height: 180px;
+    display: block;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+/* Actions rapides du tableau de bord */
+.quick-action { transition: transform .15s ease, box-shadow .15s ease; }
+.quick-action:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(29, 78, 137, .15); }
+
+/* ============================================================
+   Thème "Semi Bleu" : thème par défaut d'ORGEST.
+   Même principe que "Semi Dark" (sidebar sombre, contenu clair)
+   mais avec le bleu de marque déjà utilisé pour les card-header-brand.
+   ============================================================ */
+html.semi-bleu .sidebar-wrapper {
+    background: linear-gradient(180deg, #0b2e4f 0%, #123a63 100%);
+    border-right: 1px solid #00000000;
+}
+html.semi-bleu .sidebar-wrapper .sidebar-header {
+    background: transparent;
+    border-right: 1px solid #00000000;
+    border-bottom: 1px solid rgba(255, 255, 255, .15);
+}
+html.semi-bleu .sidebar-wrapper .sidebar-header .logo-text {
+    color: #fff;
+}
+html.semi-bleu .sidebar-wrapper .sidebar-header .toggle-icon {
+    color: #fff;
+}
+html.semi-bleu .sidebar-wrapper .sidebar-header .logo-3d .w3d-w {
+    color: #7fb0e8;
+}
+html.semi-bleu .sidebar-wrapper .sidebar-header .logo-3d-mini {
+    color: #7fb0e8;
+}
+html.semi-bleu .sidebar-wrapper .metismenu a {
+    color: #c7d6e8;
+}
+html.semi-bleu .sidebar-wrapper .metismenu a:hover,
+html.semi-bleu .sidebar-wrapper .metismenu a:focus,
+html.semi-bleu .sidebar-wrapper .metismenu a:active,
+html.semi-bleu .sidebar-wrapper .metismenu .mm-active>a {
+    color: #fff;
+    text-decoration: none;
+    background: rgba(255, 255, 255, .18);
+}
+html.semi-bleu .sidebar-wrapper .metismenu ul {
+    border: 1px solid #00000000;
+    background: rgba(255, 255, 255, .08);
+}
+html.semi-bleu .simplebar-scrollbar:before {
+    background: rgba(255, 255, 255, .4);
+}
+
+/* Semi Bleu : en-tête (topbar) et pied de page dans le même bleu que la sidebar */
+html.semi-bleu .topbar {
+    background-color: #123a63;
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+html.semi-bleu .page-footer {
+    background-color: #123a63;
+    border-top: 1px solid rgba(255, 255, 255, .12);
+    color: rgba(255, 255, 255, .75);
+}
+html.semi-bleu .mobile-toggle-menu,
+html.semi-bleu .toggle-icon,
+html.semi-bleu .topbar .navbar-nav .nav-link,
+html.semi-bleu .topbar .top-menu-left .nav-item .nav-link {
+    color: #fff;
+}
+html.semi-bleu .user-info .user-name {
+    color: #fff;
+}
+html.semi-bleu .user-info .designattion {
+    color: rgba(255, 255, 255, .7);
+}
+html.semi-bleu .search-bar input {
+    color: #fff;
+    background-color: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .18);
+}
+html.semi-bleu .search-bar input::placeholder {
+    color: rgba(255, 255, 255, .65) !important;
+    opacity: 1 !important;
+}
+
+/* Recherche des tableaux (DataTables) sur mobile : par défaut le plugin
+   centre "Afficher X éléments" et "Rechercher :" en dessous de 768px, ce qui
+   les désaligne l'un de l'autre (le champ de recherche, presque aussi large
+   que la colonne, bouge à peine ; le sélecteur "Afficher", plus étroit,
+   se retrouve décalé vers la droite). On les aligne à gauche et on donne au
+   champ de recherche toute la largeur disponible pour un usage tactile. */
+@media (max-width: 767.98px) {
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        text-align: left;
+        margin-bottom: .75rem;
+    }
+    .dataTables_wrapper .dataTables_length label,
+    .dataTables_wrapper .dataTables_filter label {
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: .5rem;
+        width: 100%;
+        margin-bottom: 0;
+    }
+    .dataTables_wrapper .dataTables_filter input[type="search"] {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin-left: 0 !important;
+    }
+}
