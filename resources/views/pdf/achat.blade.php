@@ -35,12 +35,13 @@
         .info-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
         .info-table td { padding: 5px 8px; border: 1px solid #e5e7eb; }
         .info-table .label { background: #f3f4f6; font-weight: bold; width: 22%; }
-        table.data { width: 100%; border-collapse: collapse; }
+        table.data { width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; }
         table.data th {
             background: {{ $couleur }}; color: #fff; padding: 6px 6px; text-align: left;
             text-transform: uppercase; font-size: 8.5px; letter-spacing: .02em;
+            border: 1px solid {{ $couleur }};
         }
-        table.data td { padding: 4px 6px; border-bottom: 1px solid #e5e7eb; text-align: right; }
+        table.data td { padding: 4px 6px; border: 1px solid #e5e7eb; text-align: right; }
         table.data td:first-child { text-align: center; }
         table.data tr:nth-child(even) td { background: #f8fafc; }
         table.data tfoot td { font-weight: bold; background: #eef2f7 !important; border-top: 2px solid {{ $couleur }}; }
