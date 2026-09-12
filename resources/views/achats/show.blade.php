@@ -76,7 +76,7 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th>N°</th>
                             <th>POIDS (g)</th>
                             <th>EAU</th>
                             <th>DENSITÉ</th>
@@ -98,11 +98,10 @@
                             </tr>
                         @endforeach
                         <tr class="table-active fw-bold">
-                            <td colspan="1">{{ $achat->barres->count() }} barre(s)</td>
+                            <td>{{ $achat->barres->count() }} barre(s)</td>
                             <td>{{ number_format($achat->poids_total, 3, ',', ' ') }}</td>
                             <td>{{ number_format($achat->eau_total, 4, ',', ' ') }}</td>
-                            <td colspan="2"></td>
-                            <td class="text-end">TOTAL</td>
+                            <td colspan="3" class="text-end">TOTAL</td>
                             <td class="text-end">{{ $fmt($achat->montant_total) }}</td>
                         </tr>
                     </tbody>

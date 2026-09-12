@@ -18,7 +18,7 @@ class OuvrirJourneeRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->filled('montant_initial')) {
-            $this->merge(['montant_initial' => str_replace(' ', '', (string) $this->input('montant_initial'))]);
+            $this->merge(['montant_initial' => str_replace([' ', ','], ['', '.'], (string) $this->input('montant_initial'))]);
         }
     }
 

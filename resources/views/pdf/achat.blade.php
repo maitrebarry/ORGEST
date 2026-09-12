@@ -102,7 +102,7 @@
     <table class="data">
         <thead>
             <tr>
-                <th>#</th>
+                <th>N°</th>
                 <th>Poids (g)</th>
                 <th>Eau</th>
                 <th>Densité</th>

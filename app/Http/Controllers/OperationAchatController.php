@@ -137,7 +137,7 @@ class OperationAchatController extends Controller
     {
         // Le formatage en direct (espaces tous les 3 chiffres) doit être
         // retiré avant validation.
-        $request->merge(['montant' => str_replace(' ', '', (string) $request->input('montant'))]);
+        $request->merge(['montant' => str_replace([' ', ','], ['', '.'], (string) $request->input('montant'))]);
         $request->validate([
             'montant' => ['required', 'numeric', 'min:0.01'],
             'mode_paiement' => ['required', Rule::in(array_keys(MouvementFinancier::MODES_PAIEMENT))],

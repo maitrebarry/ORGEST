@@ -73,7 +73,7 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th>N°</th>
                             <th>POIDS (g)</th>
                             <th>CARAT</th>
                             <th class="text-end">PRIX UNITAIRE</th>
@@ -91,10 +91,9 @@
                             </tr>
                         @endforeach
                         <tr class="table-active fw-bold">
-                            <td colspan="1">{{ $vente->barres->count() }} barre(s)</td>
+                            <td>{{ $vente->barres->count() }} barre(s)</td>
                             <td>{{ number_format($vente->barres->sum('poids'), 3, ',', ' ') }}</td>
-                            <td colspan="1"></td>
-                            <td class="text-end">TOTAL</td>
+                            <td colspan="2" class="text-end">TOTAL</td>
                             <td class="text-end">{{ $fmt($vente->montant_total) }}</td>
                         </tr>
                     </tbody>

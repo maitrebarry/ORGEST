@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreOperationVenteRequest;
 use App\Models\BarreAchat;
 use App\Models\Client;
-use App\Models\JourneeFinanciere;
 use App\Models\MouvementFinancier;
 use App\Models\OperationVente;
 use App\Support\CalculateurVente;
@@ -100,7 +99,7 @@ class OperationVenteController extends Controller
 
     public function enregistrerPaiement(Request $request, OperationVente $vente): RedirectResponse
     {
-        $request->merge(['montant' => str_replace(' ', '', (string) $request->input('montant'))]);
+        $request->merge(['montant' => str_replace([' ', ','], ['', '.'], (string) $request->input('montant'))]);
         $request->validate([
             'montant' => ['required', 'numeric', 'min:0.01'],
             'mode_paiement' => ['required', Rule::in(array_keys(MouvementFinancier::MODES_PAIEMENT))],

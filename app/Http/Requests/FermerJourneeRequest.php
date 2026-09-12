@@ -14,7 +14,7 @@ class FermerJourneeRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->filled('solde_physique')) {
-            $this->merge(['solde_physique' => str_replace(' ', '', (string) $this->input('solde_physique'))]);
+            $this->merge(['solde_physique' => str_replace([' ', ','], ['', '.'], (string) $this->input('solde_physique'))]);
         }
     }
 

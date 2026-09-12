@@ -14,7 +14,7 @@ class StoreApprovisionnementRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->filled('montant')) {
-            $this->merge(['montant' => str_replace(' ', '', (string) $this->input('montant'))]);
+            $this->merge(['montant' => str_replace([' ', ','], ['', '.'], (string) $this->input('montant'))]);
         }
     }
 
