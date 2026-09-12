@@ -113,7 +113,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($achat->barres as $barre)
+            @foreach ($achat->barres->sortByDesc('poids') as $barre)
                 <tr>
                     <td>{{ $barre->numero_barre }}</td>
                     <td>{{ number_format($barre->poids, 3, ',', ' ') }}</td>
