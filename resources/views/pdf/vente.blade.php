@@ -103,7 +103,7 @@
     <table class="data">
         <thead>
             <tr>
-                <th>N°</th>
+                <th>Prix de base</th>
                 <th>Poids (g)</th>
                 <th>Eau</th>
                 <th>Densité</th>
@@ -115,7 +115,7 @@
         <tbody>
             @foreach ($vente->barres->sortByDesc('poids') as $barre)
                 <tr>
-                    <td>{{ $barre->numero_barre }}</td>
+                    <td>{{ $fmt($vente->prix_base) }}</td>
                     <td>{{ number_format($barre->poids, 3, ',', ' ') }}</td>
                     <td>{{ number_format($barre->eau, 4, ',', ' ') }}</td>
                     <td>{{ number_format($barre->densite_tronquee, 2, ',', ' ') }}</td>

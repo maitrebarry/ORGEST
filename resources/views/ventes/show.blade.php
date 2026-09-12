@@ -73,7 +73,7 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>N°</th>
+                            <th>PRIX DE BASE</th>
                             <th>POIDS (g)</th>
                             <th>CARAT</th>
                             <th class="text-end">PRIX UNITAIRE</th>
@@ -83,7 +83,7 @@
                     <tbody>
                         @foreach ($vente->barres->sortByDesc('poids') as $barre)
                             <tr>
-                                <td>{{ $barre->numero_barre }}</td>
+                                <td>{{ $fmt($vente->prix_base) }}</td>
                                 <td>{{ number_format($barre->poids, 3, ',', ' ') }}</td>
                                 <td><strong>{{ number_format($barre->carat, 2, ',', ' ') }}</strong></td>
                                 <td class="text-end">{{ $fmt($barre->prix_unitaire_vente) }}</td>
