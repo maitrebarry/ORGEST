@@ -42,14 +42,16 @@
                         $nbNotificationsNavbar = count($notificationsNavbar);
                     @endphp
                     <li class="nav-item dropdown dropdown-large">
-                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class='bx bx-bell'></i>
-                            @if ($nbNotificationsNavbar > 0)
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: .6rem; padding: .3em .5em;">
-                                    {{ $nbNotificationsNavbar }}
-                                    <span class="visually-hidden">notification(s) non lues</span>
-                                </span>
-                            @endif
+                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="position-relative d-inline-block">
+                                <i class='bx bx-bell'></i>
+                                @if ($nbNotificationsNavbar > 0)
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: .6rem; padding: .3em .5em;">
+                                        {{ $nbNotificationsNavbar }}
+                                        <span class="visually-hidden">notification(s) non lues</span>
+                                    </span>
+                                @endif
+                            </span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
                             <a href="javascript:;">

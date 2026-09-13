@@ -51,15 +51,31 @@
             if (e.target.matches('[data-montant]')) formaterMontantEnDirect(e.target);
         });
 
-        // Ouvre la facture PDF dans un nouvel onglet et déclenche directement
-        // l'impression (visionneuse PDF native du navigateur) — évite à un
-        // utilisateur non-informaticien de devoir chercher le bouton
-        // "imprimer" à l'intérieur du PDF une fois ouvert.
+        // Déclenche directement l'impression de la facture PDF, sans ouvrir
+        // de nouvel onglet ni exiger de chercher le bouton "imprimer" à
+        // l'intérieur d'une visionneuse PDF (utilisateurs non-informaticiens) :
+        // une iframe cachée charge le PDF puis lance window.print() dessus dès
+        // qu'il est prêt. Plus fiable qu'un window.open() + print(), qui peut
+        // être bloqué par le navigateur ou ne jamais se déclencher selon le
+        // moment où la visionneuse PDF interne finit de charger.
         function imprimerFacture(url) {
-            const fenetre = window.open(url, '_blank');
-            if (fenetre) {
-                fenetre.addEventListener('load', () => fenetre.print());
+            let iframe = document.getElementById('iframeImpressionFacture');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'iframeImpressionFacture';
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                document.body.appendChild(iframe);
             }
+            iframe.onload = function () {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            };
+            iframe.src = url;
         }
     </script>
     @stack('scripts')
