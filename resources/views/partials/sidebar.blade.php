@@ -71,6 +71,15 @@
             </li>
         @endcan
 
+        @can('credits.voir')
+            <li>
+                <a href="{{ route('credits.index') }}" class="{{ request()->routeIs('credits.*') ? 'mm-active' : '' }}">
+                    <div class="parent-icon"><i class='bx bx-wallet'></i></div>
+                    <div class="menu-title">Cahier de crédit</div>
+                </a>
+            </li>
+        @endcan
+
         @can('bareme.voir')
             <li>
                 <a href="{{ route('baremes.index') }}" class="{{ request()->routeIs('baremes.*') ? 'mm-active' : '' }}">

@@ -14,7 +14,11 @@ class MouvementFinancier extends Model
         'approvisionnement' => 'Approvisionnement',
         'paiement_achat' => "Paiement d'achat",
         'encaissement_vente' => 'Encaissement de vente',
-        'autre' => 'Autre',
+        'credit_octroi' => 'Octroi de crédit',
+        'credit_remboursement' => 'Remboursement de crédit',
+        'credit_reliquat' => 'Reliquat de crédit',
+        'credit_annulation' => 'Annulation de crédit',
+        'autre' => 'Dépense',
     ];
 
     public const SENS = [

@@ -5,6 +5,7 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\BaremeController;
 use App\Http\Controllers\BureauController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\CreditController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OperationAchatController;
 use App\Http\Controllers\OperationVenteController;
@@ -107,6 +108,23 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('permission:ventes.annuler')->group(function () {
         Route::patch('/ventes/{vente}/annuler', [OperationVenteController::class, 'annuler'])->name('ventes.annuler');
+    });
+
+    Route::middleware('permission:credits.voir')->group(function () {
+        Route::get('/credits', [CreditController::class, 'index'])->name('credits.index');
+        Route::get('/credits/{credit}', [CreditController::class, 'show'])->name('credits.show');
+    });
+
+    Route::middleware('permission:credits.creer')->group(function () {
+        Route::post('/credits', [CreditController::class, 'store'])->name('credits.store');
+    });
+
+    Route::middleware('permission:credits.gerer')->group(function () {
+        Route::post('/credits/{credit}/remboursements', [CreditController::class, 'rembourser'])->name('credits.rembourser');
+    });
+
+    Route::middleware('permission:credits.annuler')->group(function () {
+        Route::patch('/credits/{credit}/annuler', [CreditController::class, 'annuler'])->name('credits.annuler');
     });
 
     Route::middleware('permission:fonds.voir')->group(function () {

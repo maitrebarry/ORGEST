@@ -9,7 +9,7 @@ class StockController extends Controller
 {
     public function index(): View
     {
-        $barres = BarreAchat::disponible()->with('operation.client')->orderBy('created_at')->get();
+        $barres = BarreAchat::disponible()->with('operation.client', 'remboursementCredit.credit.client')->orderBy('created_at')->get();
 
         return view('stock.index', [
             'barres' => $barres,

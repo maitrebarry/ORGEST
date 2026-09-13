@@ -54,6 +54,10 @@ return [
         'fonds.gerer',
         'bureaux.logo',
         'audit.voir',
+        'credits.voir',
+        'credits.creer',
+        'credits.gerer',
+        'credits.annuler',
     ],
 
     // Gérant : subalterne créé par le propriétaire, gère l'activité
@@ -74,5 +78,8 @@ return [
         'ventes.valider',
         'fonds.voir',
         'fonds.gerer',
+        'credits.voir',
+        'credits.creer',
+        'credits.gerer',
     ],
 ];

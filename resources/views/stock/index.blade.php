@@ -66,9 +66,9 @@
                 <table id="stock-table" class="table">
                     <thead>
                         <tr>
-                            <th>N° ACHAT</th>
-                            <th>DATE D'ACHAT</th>
-                            <th>VENDEUR</th>
+                            <th>ORIGINE</th>
+                            <th>DATE</th>
+                            <th>CLIENT</th>
                             <th>POIDS (g)</th>
                             <th>CARAT</th>
                             <th class="text-end">PRIX UNITAIRE (ACHAT)</th>
@@ -78,9 +78,18 @@
                     <tbody>
                         @foreach ($barres as $barre)
                             <tr>
-                                <td><a href="{{ route('achats.show', $barre->operation) }}">{{ $barre->operation->numero }}</a> (n°{{ $barre->numero_barre }})</td>
-                                <td>{{ $barre->operation->date_operation->format('d/m/Y') }}</td>
-                                <td>{{ $barre->operation->client->nom_complet }}</td>
+                                @if ($barre->operation)
+                                    <td><a href="{{ route('achats.show', $barre->operation) }}">{{ $barre->operation->numero }}</a> (n°{{ $barre->numero_barre }})</td>
+                                    <td>{{ $barre->operation->date_operation->format('d/m/Y') }}</td>
+                                    <td>{{ $barre->operation->client->nom_complet }}</td>
+                                @else
+                                    <td>
+                                        <a href="{{ route('credits.show', $barre->remboursementCredit->credit) }}">{{ $barre->remboursementCredit->numero }}</a>
+                                        <span class="badge bg-info-subtle text-info-emphasis">Remb. crédit</span>
+                                    </td>
+                                    <td>{{ $barre->remboursementCredit->date_remboursement->format('d/m/Y') }}</td>
+                                    <td>{{ $barre->remboursementCredit->credit->client->nom_complet }}</td>
+                                @endif
                                 <td>{{ number_format($barre->poids, 3, ',', ' ') }}</td>
                                 <td><strong>{{ number_format($barre->carat, 2, ',', ' ') }}</strong></td>
                                 <td class="text-end">{{ $fmt($barre->prix_unitaire) }}</td>
