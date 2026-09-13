@@ -13,9 +13,32 @@
 
             <div class="top-menu ms-auto">
                 <ul class="navbar-nav align-items-center">
+                    @php
+                        $journeeNavbar = auth()->user()->can('fonds.voir')
+                            ? \App\Models\JourneeFinanciere::where('bureau_id', auth()->user()->bureau_id)->ouverte()->latest('date_ouverture')->first()
+                            : null;
+                        $alerteTresorerieNavbar = null;
+                        if ($journeeNavbar?->estEnRupture()) {
+                            $alerteTresorerieNavbar = [
+                                'icone' => 'bx-error-circle', 'classe' => 'text-danger',
+                                'texte' => "Fonds épuisé. Plus aucun paiement d'achat ne pourra être honoré tant qu'un approvisionnement n'aura pas été enregistré.",
+                            ];
+                        } elseif ($journeeNavbar?->soldeFaible()) {
+                            $devise = auth()->user()->devise_symbole;
+                            $alerteTresorerieNavbar = [
+                                'icone' => 'bx-error', 'classe' => 'text-warning',
+                                'texte' => 'Solde faible. Il ne reste que '.number_format($journeeNavbar->soldeDisponible(), 0, ',', ' ').' '.$devise.' disponible (moins de 10% des entrées du jour) — pensez à demander un approvisionnement pour éviter une rupture.',
+                            ];
+                        }
+                    @endphp
                     <li class="nav-item dropdown dropdown-large">
                         <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class='bx bx-bell'></i>
+                            @if ($alerteTresorerieNavbar)
+                                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                                    <span class="visually-hidden">Alerte</span>
+                                </span>
+                            @endif
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
                             <a href="javascript:;">
@@ -24,9 +47,18 @@
                                 </div>
                             </a>
                             <div class="header-notifications-list">
-                                <div class="dropdown-item text-center text-muted py-4">
-                                    Aucune notification pour le moment
-                                </div>
+                                @if ($alerteTresorerieNavbar)
+                                    <a href="{{ route('tresorerie.index') }}" class="dropdown-item">
+                                        <div class="d-flex align-items-start gap-2 py-1">
+                                            <i class='bx {{ $alerteTresorerieNavbar['icone'] }} {{ $alerteTresorerieNavbar['classe'] }} fs-4'></i>
+                                            <div class="text-wrap small">{{ $alerteTresorerieNavbar['texte'] }}</div>
+                                        </div>
+                                    </a>
+                                @else
+                                    <div class="dropdown-item text-center text-muted py-4">
+                                        Aucune notification pour le moment
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </li>
