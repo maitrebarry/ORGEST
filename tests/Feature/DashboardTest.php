@@ -88,6 +88,27 @@ class DashboardTest extends TestCase
         $response->assertSee('Fatoumata Traoré');
     }
 
+    public function test_superadmin_sees_the_platform_supervision_dashboard_not_a_bureau_dashboard(): void
+    {
+        $superadmin = $this->userWithRole('superadmin');
+
+        $bureauA = \App\Models\Bureau::create(['nom' => 'Bureau A', 'actif' => true]);
+        $proprioA = \App\Models\User::factory()->create(['bureau_id' => $bureauA->id]);
+        $proprioA->assignRole('proprietaire');
+        $bureauA->update(['proprietaire_id' => $proprioA->id]);
+        \App\Models\Client::factory()->create(['bureau_id' => $bureauA->id, 'actif' => true]);
+
+        $response = $this->actingAs($superadmin)->get('/');
+
+        $response->assertOk();
+        $response->assertSee('LISTE DES BUREAUX');
+        $response->assertSee('Bureau A');
+        // Le tableau de bord "bureau" normal (celui du gérant/propriétaire)
+        // ne doit jamais s'afficher pour le superadmin.
+        $response->assertDontSee('Solde disponible');
+        $response->assertDontSee('DERNIERS ACHATS');
+    }
+
     public function test_quick_access_links_respect_permissions(): void
     {
         // clients.voir seul ne donne droit à aucune action rapide (elles

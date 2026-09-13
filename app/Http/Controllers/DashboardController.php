@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BarreAchat;
+use App\Models\Bureau;
 use App\Models\Client;
 use App\Models\JourneeFinanciere;
 use App\Models\OperationAchat;
@@ -21,6 +22,16 @@ class DashboardController extends Controller
     public function index(): View
     {
         $user = auth()->user();
+
+        // Le superadmin n'a pas de bureau_id : les global scopes bureau ne le
+        // filtrent jamais, donc le tableau de bord "normal" agrégerait
+        // silencieusement les données de TOUS les bureaux en un seul bloc de
+        // chiffres sans queue ni tête. Il a besoin d'une vue de supervision
+        // multi-bureaux à la place, jamais des chiffres d'un bureau précis.
+        if ($user->hasRole('superadmin')) {
+            return $this->indexSuperadmin();
+        }
+
         $aujourdhui = now()->startOfDay();
         $data = [];
 
@@ -58,5 +69,35 @@ class DashboardController extends Controller
         }
 
         return view('home', $data);
+    }
+
+    /**
+     * Vue de supervision : un bureau = une ligne, avec ses propres compteurs
+     * filtrés explicitement par bureau_id (jamais via le global scope,
+     * puisqu'il ne fait rien pour un utilisateur sans bureau_id).
+     */
+    private function indexSuperadmin(): View
+    {
+        $aujourdhui = now()->startOfDay();
+
+        $bureaux = Bureau::withCount('utilisateurs')->with('proprietaire')->latest('id')->get()
+            ->map(function (Bureau $bureau) use ($aujourdhui) {
+                $bureau->clientsActifs = Client::where('bureau_id', $bureau->id)->where('actif', true)->count();
+                $bureau->achatsJour = OperationAchat::where('bureau_id', $bureau->id)
+                    ->whereDate('date_operation', $aujourdhui)->where('statut', 'validee')->count();
+                $bureau->ventesJour = OperationVente::where('bureau_id', $bureau->id)
+                    ->whereDate('date_operation', $aujourdhui)->where('statut', 'validee')->count();
+
+                return $bureau;
+            });
+
+        return view('home-superadmin', [
+            'bureaux' => $bureaux,
+            'nbBureaux' => $bureaux->count(),
+            'nbBureauxActifs' => $bureaux->where('actif', true)->count(),
+            'nbProprietaires' => User::role('proprietaire')->where('actif', true)->count(),
+            'nbGerants' => User::role('gerant')->where('actif', true)->count(),
+            'nbClientsTotal' => Client::where('actif', true)->count(),
+        ]);
     }
 }
