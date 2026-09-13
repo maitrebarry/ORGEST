@@ -32,9 +32,9 @@ class StoreOperationAchatRequest extends FormRequest
 
         $barres = collect($this->input('barres'))
             ->map(function ($barre) {
-                foreach (['poids', 'eau'] as $champ) {
+                foreach (['poids', 'eau', 'densite', 'carat', 'prix_unitaire'] as $champ) {
                     if (isset($barre[$champ])) {
-                        $barre[$champ] = str_replace(',', '.', trim((string) $barre[$champ]));
+                        $barre[$champ] = str_replace([' ', ','], ['', '.'], trim((string) $barre[$champ]));
                     }
                 }
 
@@ -65,6 +65,14 @@ class StoreOperationAchatRequest extends FormRequest
             'barres' => ['required', 'array', 'min:1'],
             'barres.*.poids' => ['required', 'numeric', 'min:0.001'],
             'barres.*.eau' => ['required', 'numeric', 'min:0.0001'],
+            // Densité/carat/prix unitaire : optionnels, saisis directement
+            // par l'opérateur pour surcharger le calcul automatique du
+            // barème (ex. densité hors barème, prix négocié). S'ils sont
+            // absents, le serveur calcule tout depuis poids/eau/prix_base
+            // comme avant, barème obligatoire.
+            'barres.*.densite' => ['nullable', 'numeric', 'min:0'],
+            'barres.*.carat' => ['nullable', 'numeric', 'min:0'],
+            'barres.*.prix_unitaire' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 

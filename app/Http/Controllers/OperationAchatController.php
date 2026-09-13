@@ -10,6 +10,7 @@ use App\Models\JourneeFinanciere;
 use App\Models\MouvementFinancier;
 use App\Models\OperationAchat;
 use App\Support\CalculateurAchat;
+use App\Support\CalculOr;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -49,7 +50,26 @@ class OperationAchatController extends Controller
         $erreurs = [];
 
         foreach ($data['barres'] as $i => $barre) {
-            $resultat = CalculateurAchat::calculerBarre((string) $barre['poids'], (string) $barre['eau'], $prixBase, $bareme);
+            // Carat + prix unitaire saisis directement par l'opérateur (ex.
+            // densité hors barème, prix négocié) : surcharge totale, aucune
+            // recherche dans le barème pour cette barre, aucun rejet
+            // possible. Sans ces deux champs, comportement inchangé.
+            if (filled($barre['carat'] ?? null) && filled($barre['prix_unitaire'] ?? null)) {
+                $densiteBrute = CalculOr::densiteBrute((string) $barre['poids'], (string) $barre['eau']);
+                $prixUnitaire = (string) $barre['prix_unitaire'];
+
+                $resultat = [
+                    'densite_brute' => $densiteBrute,
+                    'densite_tronquee' => filled($barre['densite'] ?? null) ? (string) $barre['densite'] : CalculOr::tronquerDensite($densiteBrute),
+                    'bareme_ligne_id' => null,
+                    'carat' => (string) $barre['carat'],
+                    'prix_unitaire' => $prixUnitaire,
+                    'montant' => CalculOr::montant((string) $barre['poids'], $prixUnitaire),
+                    'erreur' => null,
+                ];
+            } else {
+                $resultat = CalculateurAchat::calculerBarre((string) $barre['poids'], (string) $barre['eau'], $prixBase, $bareme);
+            }
 
             if ($resultat['erreur']) {
                 $erreurs[] = 'Barre '.($i + 1).' : '.$resultat['erreur'];

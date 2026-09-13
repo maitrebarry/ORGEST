@@ -110,7 +110,9 @@
                 <p class="text-muted small mb-0">
                     <i class='bx bx-info-circle'></i>
                     La densité (Poids ÷ Eau) est tronquée à 2 décimales sans arrondi pour déterminer le carat via le
-                    barème actif. Ce calcul est indicatif ; le serveur recalcule et vérifie tout à l'enregistrement.
+                    barème actif. Densité, carat et prix unitaire sont modifiables : une saisie manuelle du carat et
+                    du prix unitaire remplace le calcul automatique pour cette barre (utile si la densité tombe hors
+                    barème, ou pour un prix négocié).
                 </p>
             </div>
         </div>
@@ -175,9 +177,9 @@
                 <td class="num-barre">${compteur}</td>
                 <td><input type="text" inputmode="decimal" class="form-control barre-poids" name="barres[${idx}][poids]" placeholder="Ex : 27,89"></td>
                 <td><input type="text" inputmode="decimal" class="form-control barre-eau" name="barres[${idx}][eau]" placeholder="Ex : 1,49"></td>
-                <td><span class="barre-densite text-muted">—</span></td>
-                <td><span class="barre-carat fw-bold text-muted">—</span></td>
-                <td><span class="barre-prix-unitaire text-muted">—</span></td>
+                <td><input type="text" inputmode="decimal" class="form-control form-control-sm barre-densite" name="barres[${idx}][densite]" placeholder="—"></td>
+                <td><input type="text" inputmode="decimal" class="form-control form-control-sm barre-carat" name="barres[${idx}][carat]" placeholder="—"></td>
+                <td><input type="text" inputmode="decimal" class="form-control form-control-sm barre-prix-unitaire" name="barres[${idx}][prix_unitaire]" placeholder="—"></td>
                 <td><span class="barre-montant fw-bold text-muted">—</span></td>
                 <td class="text-center text-nowrap">
                     <button type="button" class="btn btn-success btn-sm add-barre-apres-btn" title="Ajouter une barre après"><i class='bx bx-plus'></i></button>
@@ -194,6 +196,13 @@
             document.getElementById('nombreBarres').textContent = document.querySelectorAll('#barresBody .barre-row').length;
         }
 
+        // Densité, carat et prix unitaire sont éditables : tant que
+        // l'opérateur n'a pas touché un champ (pas de dataset.manuel), il
+        // reste calculé automatiquement depuis poids/eau/prix de base. Dès
+        // qu'il tape dedans, ce champ précis n'est plus jamais écrasé par le
+        // recalcul automatique — les autres champs continuent de se mettre
+        // à jour normalement. Le montant, lui, n'est jamais saisissable :
+        // toujours poids × prix unitaire affiché (auto ou manuel).
         function recalculerLigne(row) {
             const prixBase = toNombre(document.getElementById('prixBase').value);
             const poids = toNombre(row.querySelector('.barre-poids').value);
@@ -205,37 +214,54 @@
             const montantEl = row.querySelector('.barre-montant');
 
             if (!poids || !eau || eau <= 0) {
-                densiteEl.textContent = '—'; caratEl.textContent = '—'; puEl.textContent = '—'; montantEl.textContent = '—';
-                caratEl.classList.add('text-muted'); caratEl.classList.remove('text-danger');
+                if (!densiteEl.dataset.manuel) densiteEl.value = '';
+                if (!caratEl.dataset.manuel) { caratEl.value = ''; caratEl.classList.remove('border-danger'); }
+                if (!puEl.dataset.manuel) puEl.value = '';
+                montantEl.textContent = '—';
+                montantEl.classList.add('text-muted');
                 return { poids: 0, eau: 0, montant: 0 };
             }
 
             const densiteBrute = poids / eau;
-            const densiteTronquee = tronquer2(densiteBrute);
-            densiteEl.textContent = densiteTronquee.toFixed(2).replace('.', ',');
-            densiteEl.classList.remove('text-muted');
-
-            const carat = trouverCarat(densiteTronquee);
-            if (carat === null) {
-                caratEl.textContent = 'Hors barème';
-                caratEl.classList.add('text-danger'); caratEl.classList.remove('text-muted', 'fw-bold');
-                puEl.textContent = '—'; montantEl.textContent = '—';
-                return { poids, eau, montant: 0 };
+            const densiteTronqueeAuto = tronquer2(densiteBrute);
+            if (!densiteEl.dataset.manuel) {
+                densiteEl.value = densiteTronqueeAuto.toFixed(2).replace('.', ',');
             }
-            caratEl.classList.remove('text-danger', 'text-muted');
-            caratEl.classList.add('fw-bold');
-            caratEl.textContent = carat.toFixed(2).replace('.', ',');
 
+            if (!caratEl.dataset.manuel) {
+                const densitePourRecherche = densiteEl.dataset.manuel ? toNombre(densiteEl.value) : densiteTronqueeAuto;
+                const caratAuto = isNaN(densitePourRecherche) ? null : trouverCarat(densitePourRecherche);
+                if (caratAuto === null) {
+                    caratEl.value = '';
+                    caratEl.classList.add('border-danger');
+                    caratEl.title = 'Densité hors barème — saisissez le carat manuellement';
+                } else {
+                    caratEl.value = caratAuto.toFixed(2).replace('.', ',');
+                    caratEl.classList.remove('border-danger');
+                    caratEl.title = '';
+                }
+            }
+
+            const carat = toNombre(caratEl.value);
+
+            if (!puEl.dataset.manuel) {
+                if (prixBase && !isNaN(carat)) {
+                    const prixUnitaireAuto = (prixBase / 24) * carat;
+                    puEl.value = prixUnitaireAuto.toFixed(2).replace(/\.?0+$/, '').replace('.', ',');
+                } else {
+                    puEl.value = '';
+                }
+            }
+
+            const prixUnitaire = toNombre(puEl.value);
             let montant = 0;
-            if (prixBase) {
-                const prixUnitaire = (prixBase / 24) * carat;
+            if (!isNaN(prixUnitaire) && prixUnitaire > 0) {
                 montant = poids * prixUnitaire;
-                puEl.textContent = fmtFcfa(prixUnitaire);
-                puEl.classList.remove('text-muted');
                 montantEl.textContent = fmtFcfa(montant);
                 montantEl.classList.remove('text-muted');
             } else {
-                puEl.textContent = '—'; montantEl.textContent = '—';
+                montantEl.textContent = '—';
+                montantEl.classList.add('text-muted');
             }
 
             return { poids, eau, montant };
@@ -266,12 +292,30 @@
 
         document.getElementById('barresBody').addEventListener('input', function (e) {
             if (e.target.matches('.barre-poids, .barre-eau')) recalculerTout();
+
+            // Saisie directe dans densité/carat/prix unitaire : ce champ
+            // précis devient une surcharge manuelle (ou redevient
+            // automatique si l'opérateur le vide à nouveau).
+            if (e.target.matches('.barre-densite, .barre-carat, .barre-prix-unitaire')) {
+                if (e.target.value.trim() === '') {
+                    delete e.target.dataset.manuel;
+                } else {
+                    e.target.dataset.manuel = '1';
+                    if (e.target.matches('.barre-carat')) {
+                        e.target.classList.remove('border-danger');
+                        e.target.title = '';
+                    }
+                }
+                recalculerTout();
+            }
         });
 
         // À la sortie du champ, on réécrit "27,89" en "27.89" : le champ
         // envoyé au serveur est toujours au format à point décimal.
         document.getElementById('barresBody').addEventListener('blur', function (e) {
-            if (e.target.matches('.barre-poids, .barre-eau')) normaliserChamp(e.target);
+            if (e.target.matches('.barre-poids, .barre-eau, .barre-densite, .barre-carat, .barre-prix-unitaire')) {
+                normaliserChamp(e.target);
+            }
         }, true);
 
         document.getElementById('prixBase').addEventListener('input', recalculerTout);

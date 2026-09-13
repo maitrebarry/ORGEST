@@ -110,6 +110,36 @@ class OperationAchatManagementTest extends TestCase
         $this->assertSame(0, OperationAchat::count());
     }
 
+    public function test_manual_carat_and_prix_unitaire_override_the_bareme_lookup(): void
+    {
+        $this->creerBaremeReel();
+        $operateur = $this->userWithRole('gerant');
+        $client = Client::factory()->create();
+
+        // Densité 10.00 hors barème, mais carat et prix unitaire saisis
+        // directement par l'opérateur : aucun rejet, aucune recherche dans
+        // le barème pour cette barre.
+        $response = $this->actingAs($operateur)->post('/achats', [
+            'client_id' => $client->id,
+            'date_operation' => now(),
+            'prix_base' => 80000,
+            'barres' => [
+                ['poids' => '10', 'eau' => '1', 'carat' => '18,00', 'prix_unitaire' => '60 000'],
+            ],
+        ]);
+
+        $operation = OperationAchat::first();
+        $response->assertRedirect(route('achats.show', $operation));
+
+        $barre = $operation->barres->first();
+        $this->assertSame('18.00', $barre->carat);
+        $this->assertSame('60000.00', $barre->prix_unitaire);
+        $this->assertNull($barre->bareme_ligne_id);
+        // montant = poids (10) x prix_unitaire (60000) = 600 000
+        $this->assertSame('600000.00', $barre->montant);
+        $this->assertSame('600000.00', $operation->montant_total);
+    }
+
     public function test_achat_is_validated_immediately_upon_creation(): void
     {
         $this->creerBaremeReel();

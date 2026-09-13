@@ -192,11 +192,20 @@
                                         <th width="6%">#</th>
                                         <th>Poids (g)</th>
                                         <th>Eau</th>
-                                        <th width="10%"></th>
+                                        <th>Densité</th>
+                                        <th>Carat</th>
+                                        <th>Prix unitaire</th>
+                                        <th>Montant</th>
+                                        <th width="8%"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="lignesOrBody"></tbody>
                             </table>
+                        </div>
+                        <div class="alert alert-info py-2 mb-0 d-flex flex-wrap gap-3" id="comparaisonOr">
+                            <div><strong>Valeur totale de l'or :</strong> <span id="valeurOrTotale">0</span></div>
+                            <div><strong>Solde restant dû :</strong> <span id="soldeRestantDu">{{ number_format($credit->solde(), 0, ',', ' ') }} {{ $devise }}</span></div>
+                            <div id="resultatComparaison"></div>
                         </div>
                     </div>
 
@@ -228,6 +237,28 @@
         });
 
         @if ($peutRembourser)
+            const bareme = @json($baremeActif ? $baremeActif->lignes->map(fn ($l) => ['min' => (float) $l->densite_min, 'max' => (float) $l->densite_max, 'carat' => (float) $l->carat]) : []);
+            const devise = @json($devise);
+            const soldeRestantDu = {{ $credit->solde() }};
+
+            function toNombreOr(valeur) {
+                if (valeur === null || valeur === undefined) return NaN;
+                return parseFloat(String(valeur).trim().replace(/\s/g, '').replace(',', '.'));
+            }
+
+            function tronquer2Or(valeur) {
+                return Math.trunc(valeur * 100) / 100;
+            }
+
+            function trouverCaratOr(densiteTronquee) {
+                const ligne = bareme.find(l => densiteTronquee >= l.min && densiteTronquee <= l.max);
+                return ligne ? ligne.carat : null;
+            }
+
+            function fmtOr(n) {
+                return Math.round(n).toLocaleString('fr-FR').replace(/ | /g, ' ') + ' ' + devise;
+            }
+
             function appliquerMode() {
                 const mode = document.querySelector('input[name="mode"]:checked').value;
                 const especes = mode === 'especes' || mode === 'or_especes';
@@ -246,16 +277,23 @@
                 if (or && document.querySelectorAll('#lignesOrBody tr').length === 0) {
                     ajouterLigneOr();
                 }
+
+                recalculerComparaisonOr();
             }
 
             let indexLigneOr = 0;
             function ajouterLigneOr() {
                 const idx = indexLigneOr++;
                 const tr = document.createElement('tr');
+                tr.className = 'ligne-or-row';
                 tr.innerHTML = `
                     <td class="num-ligne">${document.querySelectorAll('#lignesOrBody tr').length + 1}</td>
-                    <td><input type="text" inputmode="decimal" class="form-control" name="barres[${idx}][poids]" placeholder="Ex : 27,89"></td>
-                    <td><input type="text" inputmode="decimal" class="form-control" name="barres[${idx}][eau]" placeholder="Ex : 1,49"></td>
+                    <td><input type="text" inputmode="decimal" class="form-control ligne-or-poids" name="barres[${idx}][poids]" placeholder="Ex : 27,89"></td>
+                    <td><input type="text" inputmode="decimal" class="form-control ligne-or-eau" name="barres[${idx}][eau]" placeholder="Ex : 1,49"></td>
+                    <td><span class="ligne-or-densite text-muted">—</span></td>
+                    <td><span class="ligne-or-carat fw-bold text-muted">—</span></td>
+                    <td><span class="ligne-or-pu text-muted">—</span></td>
+                    <td><span class="ligne-or-montant fw-bold text-muted">—</span></td>
                     <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-ligne-or" title="Supprimer"><i class='bx bx-trash'></i></button></td>
                 `;
                 document.getElementById('lignesOrBody').appendChild(tr);
@@ -267,8 +305,82 @@
                 });
             }
 
+            // Aperçu live : pour que l'opérateur voie immédiatement la valeur
+            // de l'or apporté et comment elle se compare à ce que le client
+            // doit encore, avant même d'enregistrer le remboursement.
+            function recalculerLigneOr(row) {
+                const prixBase = toNombreOr(document.getElementById('prixBaseRemb').value);
+                const poids = toNombreOr(row.querySelector('.ligne-or-poids').value);
+                const eau = toNombreOr(row.querySelector('.ligne-or-eau').value);
+
+                const densiteEl = row.querySelector('.ligne-or-densite');
+                const caratEl = row.querySelector('.ligne-or-carat');
+                const puEl = row.querySelector('.ligne-or-pu');
+                const montantEl = row.querySelector('.ligne-or-montant');
+
+                if (!poids || !eau || eau <= 0) {
+                    densiteEl.textContent = '—'; caratEl.textContent = '—'; puEl.textContent = '—'; montantEl.textContent = '—';
+                    return 0;
+                }
+
+                const densiteTronquee = tronquer2Or(poids / eau);
+                densiteEl.textContent = densiteTronquee.toFixed(2).replace('.', ',');
+
+                const carat = trouverCaratOr(densiteTronquee);
+                if (carat === null) {
+                    caratEl.textContent = 'Hors barème';
+                    caratEl.classList.add('text-danger');
+                    puEl.textContent = '—'; montantEl.textContent = '—';
+                    return 0;
+                }
+                caratEl.classList.remove('text-danger');
+                caratEl.textContent = carat.toFixed(2).replace('.', ',');
+
+                if (!prixBase) {
+                    puEl.textContent = '—'; montantEl.textContent = '—';
+                    return 0;
+                }
+
+                const prixUnitaire = (prixBase / 24) * carat;
+                const montant = poids * prixUnitaire;
+                puEl.textContent = fmtOr(prixUnitaire);
+                montantEl.textContent = fmtOr(montant);
+
+                return montant;
+            }
+
+            function recalculerComparaisonOr() {
+                const mode = document.querySelector('input[name="mode"]:checked').value;
+                let valeurOr = 0;
+                document.querySelectorAll('#lignesOrBody .ligne-or-row').forEach(row => {
+                    valeurOr += recalculerLigneOr(row);
+                });
+
+                document.getElementById('valeurOrTotale').textContent = fmtOr(valeurOr);
+
+                const complement = mode === 'or_especes' ? (toNombreOr(document.getElementById('montantEspeces').value) || 0) : 0;
+                const totalApporte = valeurOr + complement;
+                const resultatEl = document.getElementById('resultatComparaison');
+
+                if (totalApporte <= 0) {
+                    resultatEl.textContent = '';
+                } else if (totalApporte >= soldeRestantDu) {
+                    const reliquat = totalApporte - soldeRestantDu;
+                    resultatEl.innerHTML = reliquat > 0
+                        ? '<span class="text-success fw-bold">Crédit soldé — reliquat à remettre au client : ' + fmtOr(reliquat) + '</span>'
+                        : '<span class="text-success fw-bold">Crédit exactement soldé.</span>';
+                } else {
+                    resultatEl.innerHTML = '<span class="text-warning fw-bold">Il restera encore : ' + fmtOr(soldeRestantDu - totalApporte) + '</span>';
+                }
+            }
+
             document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener('change', appliquerMode));
-            document.getElementById('addLigneOrBtn').addEventListener('click', ajouterLigneOr);
+            document.getElementById('addLigneOrBtn').addEventListener('click', function () { ajouterLigneOr(); recalculerComparaisonOr(); });
+            document.getElementById('prixBaseRemb').addEventListener('input', recalculerComparaisonOr);
+            document.getElementById('montantEspeces').addEventListener('input', recalculerComparaisonOr);
+            document.getElementById('lignesOrBody').addEventListener('input', function (e) {
+                if (e.target.matches('.ligne-or-poids, .ligne-or-eau')) recalculerComparaisonOr();
+            });
             document.getElementById('lignesOrBody').addEventListener('click', function (e) {
                 const btn = e.target.closest('.remove-ligne-or');
                 if (!btn) return;
@@ -278,6 +390,7 @@
                 }
                 btn.closest('tr').remove();
                 renumeroterLignesOr();
+                recalculerComparaisonOr();
             });
 
             appliquerMode();
