@@ -14,51 +14,62 @@
             <div class="top-menu ms-auto">
                 <ul class="navbar-nav align-items-center">
                     @php
+                        // Liste ouverte : chaque alerte disponible ajoute une entrée
+                        // ici, le badge de la cloche affiche toujours le VRAI nombre
+                        // d'entrées (jamais un simple point), prêt à en accueillir
+                        // d'autres que la trésorerie plus tard.
+                        $notificationsNavbar = [];
+
                         $journeeNavbar = auth()->user()->can('fonds.voir')
                             ? \App\Models\JourneeFinanciere::where('bureau_id', auth()->user()->bureau_id)->ouverte()->latest('date_ouverture')->first()
                             : null;
-                        $alerteTresorerieNavbar = null;
+
                         if ($journeeNavbar?->estEnRupture()) {
-                            $alerteTresorerieNavbar = [
+                            $notificationsNavbar[] = [
                                 'icone' => 'bx-error-circle', 'classe' => 'text-danger',
                                 'texte' => "Fonds épuisé. Plus aucun paiement d'achat ne pourra être honoré tant qu'un approvisionnement n'aura pas été enregistré.",
+                                'lien' => route('tresorerie.index'),
                             ];
                         } elseif ($journeeNavbar?->soldeFaible()) {
                             $devise = auth()->user()->devise_symbole;
-                            $alerteTresorerieNavbar = [
+                            $notificationsNavbar[] = [
                                 'icone' => 'bx-error', 'classe' => 'text-warning',
                                 'texte' => 'Solde faible. Il ne reste que '.number_format($journeeNavbar->soldeDisponible(), 0, ',', ' ').' '.$devise.' disponible (moins de 10% des entrées du jour) — pensez à demander un approvisionnement pour éviter une rupture.',
+                                'lien' => route('tresorerie.index'),
                             ];
                         }
+
+                        $nbNotificationsNavbar = count($notificationsNavbar);
                     @endphp
                     <li class="nav-item dropdown dropdown-large">
                         <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class='bx bx-bell'></i>
-                            @if ($alerteTresorerieNavbar)
-                                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                                    <span class="visually-hidden">Alerte</span>
+                            @if ($nbNotificationsNavbar > 0)
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: .6rem; padding: .3em .5em;">
+                                    {{ $nbNotificationsNavbar }}
+                                    <span class="visually-hidden">notification(s) non lues</span>
                                 </span>
                             @endif
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
                             <a href="javascript:;">
                                 <div class="msg-header">
-                                    <p class="msg-header-title">Notifications</p>
+                                    <p class="msg-header-title">Notifications @if ($nbNotificationsNavbar > 0)({{ $nbNotificationsNavbar }})@endif</p>
                                 </div>
                             </a>
                             <div class="header-notifications-list">
-                                @if ($alerteTresorerieNavbar)
-                                    <a href="{{ route('tresorerie.index') }}" class="dropdown-item">
+                                @forelse ($notificationsNavbar as $notif)
+                                    <a href="{{ $notif['lien'] }}" class="dropdown-item">
                                         <div class="d-flex align-items-start gap-2 py-1">
-                                            <i class='bx {{ $alerteTresorerieNavbar['icone'] }} {{ $alerteTresorerieNavbar['classe'] }} fs-4'></i>
-                                            <div class="text-wrap small">{{ $alerteTresorerieNavbar['texte'] }}</div>
+                                            <i class='bx {{ $notif['icone'] }} {{ $notif['classe'] }} fs-4'></i>
+                                            <div class="text-wrap small">{{ $notif['texte'] }}</div>
                                         </div>
                                     </a>
-                                @else
+                                @empty
                                     <div class="dropdown-item text-center text-muted py-4">
                                         Aucune notification pour le moment
                                     </div>
-                                @endif
+                                @endforelse
                             </div>
                         </div>
                     </li>
