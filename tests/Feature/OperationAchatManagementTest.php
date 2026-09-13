@@ -179,6 +179,66 @@ class OperationAchatManagementTest extends TestCase
         $this->assertSame('5000000.00', $operation->fresh()->montant_paye);
     }
 
+    public function test_modifier_barre_recalculates_montant_and_total(): void
+    {
+        $this->creerBaremeReel();
+        $operateur = $this->userWithRole('gerant');
+        $client = Client::factory()->create();
+
+        $this->actingAs($operateur)->post('/achats', [
+            'client_id' => $client->id,
+            'date_operation' => now(),
+            'prix_base' => 80000,
+            'barres' => [['poids' => '119.47', 'eau' => '6.42']], // montant = 9 079 720.00
+        ]);
+        $operation = OperationAchat::first();
+        $barre = $operation->barres->first();
+
+        $response = $this->actingAs($operateur)->patch("/achats/{$operation->id}/barres/{$barre->id}", [
+            'densite_tronquee' => '18,60',
+            'carat' => '23,00',
+            'prix_unitaire' => '77 000',
+        ]);
+        $response->assertRedirect();
+
+        $barre->refresh();
+        $operation->refresh();
+        $this->assertSame('23.00', $barre->carat);
+        $this->assertSame('77000.00', $barre->prix_unitaire);
+        // montant = poids (119.47) x prix_unitaire (77000) = 9 199 190.00
+        $this->assertSame('9199190.00', $barre->montant);
+        $this->assertSame('9199190.00', $operation->montant_total);
+    }
+
+    public function test_modifier_barre_is_blocked_below_montant_paye(): void
+    {
+        $this->creerBaremeReel();
+        $operateur = $this->userWithRole('gerant');
+        $client = Client::factory()->create();
+        JourneeFinanciere::ouvrirJournee(10000000, null, $operateur);
+
+        $this->actingAs($operateur)->post('/achats', [
+            'client_id' => $client->id,
+            'date_operation' => now(),
+            'prix_base' => 80000,
+            'barres' => [['poids' => '119.47', 'eau' => '6.42']], // montant = 9 079 720.00
+        ]);
+        $operation = OperationAchat::first();
+        $barre = $operation->barres->first();
+
+        $this->actingAs($operateur)->patch("/achats/{$operation->id}/paiement", ['montant' => 9000000, 'mode_paiement' => 'especes']);
+
+        // Un prix unitaire très bas ferait tomber le nouveau montant total
+        // (119.47 x 1000 = 119 470) sous les 9 000 000 déjà payés.
+        $response = $this->actingAs($operateur)->patch("/achats/{$operation->id}/barres/{$barre->id}", [
+            'densite_tronquee' => '18,60',
+            'carat' => '22,80',
+            'prix_unitaire' => '1000',
+        ]);
+        $response->assertSessionHasErrors('barre');
+        $this->assertSame('76000.00', $barre->fresh()->prix_unitaire);
+    }
+
     public function test_gerant_without_achats_creer_permission_cannot_create_an_achat(): void
     {
         // Les permissions sont individuelles : un gérant à qui on a retiré

@@ -111,7 +111,9 @@ class OperationVenteController extends Controller
             return back()->withErrors(['montant' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'Encaissement enregistré avec succès.');
+        return back()
+            ->with('status', 'Encaissement enregistré avec succès.')
+            ->with('facture_url', route('ventes.pdf', $vente));
     }
 
     public function pdf(OperationVente $vente)
@@ -121,5 +123,32 @@ class OperationVenteController extends Controller
         $pdf = Pdf::loadView('pdf.vente', ['vente' => $vente])->setPaper('a4', 'portrait');
 
         return $pdf->stream('facture-vente-'.$vente->numero.'.pdf');
+    }
+
+    public function modifierBarre(Request $request, OperationVente $vente, BarreAchat $barre): RedirectResponse
+    {
+        $request->merge([
+            'densite_tronquee' => str_replace([' ', ','], ['', '.'], (string) $request->input('densite_tronquee')),
+            'carat' => str_replace([' ', ','], ['', '.'], (string) $request->input('carat')),
+            'prix_unitaire_vente' => str_replace([' ', ','], ['', '.'], (string) $request->input('prix_unitaire_vente')),
+        ]);
+        $request->validate([
+            'densite_tronquee' => ['required', 'numeric', 'min:0'],
+            'carat' => ['required', 'numeric', 'min:0'],
+            'prix_unitaire_vente' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        try {
+            $vente->corrigerBarre(
+                $barre,
+                (string) $request->input('densite_tronquee'),
+                (string) $request->input('carat'),
+                (string) $request->input('prix_unitaire_vente')
+            );
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['barre' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'Barre modifiée avec succès.');
     }
 }

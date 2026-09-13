@@ -12,6 +12,7 @@
     // propre au marché malien : ne s'affiche pas pour les autres pays.
     $afficherBambara = $achat->bureau?->estAuMali() ?? true;
     $bambara = \App\Support\CalculOr::arrondir(bcdiv((string) $achat->montant_total, '5', 4));
+    $barresModifiables = auth()->user()->can('achats.valider');
 @endphp
 
 @section('content')
@@ -83,6 +84,9 @@
                             <th>CARAT</th>
                             <th class="text-end">PRIX UNITAIRE</th>
                             <th class="text-end">MONTANT</th>
+                            @if ($barresModifiables)
+                                <th width="8%">ACTION</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -95,6 +99,19 @@
                                 <td><strong>{{ number_format($barre->carat, 2, ',', ' ') }}</strong></td>
                                 <td class="text-end">{{ $fmt($barre->prix_unitaire) }}</td>
                                 <td class="text-end">{{ $fmt($barre->montant) }}</td>
+                                @if ($barresModifiables)
+                                    <td class="text-nowrap">
+                                        <a href="javascript:;" class="btn btn-success btn-sm edit-barre-button"
+                                           data-bs-toggle="modal" data-bs-target="#editBarreModal"
+                                           data-url="{{ route('achats.barres.update', [$achat, $barre]) }}"
+                                           data-densite="{{ $barre->densite_tronquee }}"
+                                           data-carat="{{ $barre->carat }}"
+                                           data-prix="{{ $barre->prix_unitaire }}"
+                                           title="Modifier">
+                                            <i class='bx bx-edit-alt'></i>
+                                        </a>
+                                    </td>
+                                @endif
                             </tr>
                         @endforeach
                         <tr class="table-active fw-bold">
@@ -103,10 +120,51 @@
                             <td>{{ number_format($achat->eau_total, 4, ',', ' ') }}</td>
                             <td colspan="3" class="text-end">TOTAL</td>
                             <td class="text-end">{{ $fmt($achat->montant_total) }}</td>
+                            @if ($barresModifiables)
+                                <td></td>
+                            @endif
                         </tr>
                     </tbody>
                 </table>
             </div>
+
+            @if ($barresModifiables)
+                <div class="modal fade" id="editBarreModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" id="editBarreForm" action="">
+                                @csrf
+                                @method('PATCH')
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Modifier la barre</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Densité</label>
+                                        <input type="text" inputmode="decimal" class="form-control" name="densite_tronquee" id="edit_barre_densite" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Carat</label>
+                                        <input type="text" inputmode="decimal" class="form-control" name="carat" id="edit_barre_carat" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Prix unitaire</label>
+                                        <div class="input-group">
+                                            <input type="text" inputmode="decimal" data-montant class="form-control" name="prix_unitaire" id="edit_barre_prix" required>
+                                            <span class="input-group-text">{{ $devise }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <div class="row mt-3 align-items-stretch">
                 <div class="{{ $afficherBambara ? 'col-md-6' : 'col-md-12' }}">
@@ -220,6 +278,14 @@
                     text: 'Solde disponible : ' + soldeNum.toLocaleString('fr-FR') + ' — ce paiement de ' + montant.toLocaleString('fr-FR') + ' dépasse le fonds disponible.',
                 });
             }
+        });
+
+        $(document).on('click', '.edit-barre-button', function () {
+            const data = $(this).data();
+            $('#editBarreForm').attr('action', data.url);
+            $('#edit_barre_densite').val(data.densite);
+            $('#edit_barre_carat').val(data.carat);
+            $('#edit_barre_prix').val(data.prix);
         });
 
         $(document).on('submit', '.confirm-form', function (e) {

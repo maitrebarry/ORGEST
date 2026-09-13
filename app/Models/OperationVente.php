@@ -113,6 +113,36 @@ class OperationVente extends Model
     }
 
     /**
+     * Corrige manuellement la densité, le carat et le prix unitaire de
+     * vente d'une barre déjà enregistrée — recalcule le montant de la
+     * barre et le montant total de l'opération. Refusé si cela ferait
+     * passer le montant total sous le montant déjà encaissé.
+     */
+    public function corrigerBarre(BarreAchat $barre, string $densite, string $carat, string $prixUnitaireVente): void
+    {
+        if ($barre->operation_vente_id !== $this->id) {
+            throw new \RuntimeException("Cette barre n'appartient pas à cette opération.");
+        }
+
+        $nouveauMontantBarre = bcmul((string) $barre->poids, $prixUnitaireVente, 2);
+        $nouveauMontantTotal = bcsub(bcadd((string) $this->montant_total, $nouveauMontantBarre, 2), (string) $barre->montant_vente, 2);
+
+        if (bccomp($nouveauMontantTotal, (string) $this->montant_paye, 2) < 0) {
+            $devise = $this->bureau?->devise_symbole ?? config('pays_devises.Mali.symbole');
+            throw new \RuntimeException('Ce changement ferait passer le montant total ('.number_format((float) $nouveauMontantTotal, 0, ',', ' ').' '.$devise.') sous le montant déjà encaissé ('.number_format((float) $this->montant_paye, 0, ',', ' ').' '.$devise.').');
+        }
+
+        $barre->update([
+            'densite_tronquee' => $densite,
+            'carat' => $carat,
+            'prix_unitaire_vente' => $prixUnitaireVente,
+            'montant_vente' => $nouveauMontantBarre,
+        ]);
+
+        $this->update(['montant_total' => $nouveauMontantTotal]);
+    }
+
+    /**
      * Annulation tracée : les barres vendues retournent en stock (rien ne
      * dépend encore d'une vente en aval dans l'application, contrairement à
      * l'achat où une barre déjà vendue bloque l'annulation).

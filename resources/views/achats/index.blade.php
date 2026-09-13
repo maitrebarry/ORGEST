@@ -73,6 +73,9 @@
                                 <a href="{{ route('achats.show', $operation) }}" class="btn btn-primary btn-sm" title="Voir">
                                     <i class='bx bx-show'></i>
                                 </a>
+                                <button type="button" class="btn btn-danger btn-sm" title="Imprimer la facture" onclick="imprimerFacture('{{ route('achats.pdf', $operation) }}')">
+                                    <i class='bx bx-printer'></i>
+                                </button>
                             </td>
                         </tr>
                     @endforeach

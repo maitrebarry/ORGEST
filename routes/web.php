@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('permission:achats.valider')->group(function () {
         Route::patch('/achats/{achat}/paiement', [OperationAchatController::class, 'enregistrerPaiement'])->name('achats.paiement');
+        Route::patch('/achats/{achat}/barres/{barre}', [OperationAchatController::class, 'modifierBarre'])->name('achats.barres.update');
     });
 
     Route::middleware('permission:achats.annuler')->group(function () {
@@ -101,6 +102,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('permission:ventes.valider')->group(function () {
         Route::patch('/ventes/{vente}/paiement', [OperationVenteController::class, 'enregistrerPaiement'])->name('ventes.paiement');
+        Route::patch('/ventes/{vente}/barres/{barre}', [OperationVenteController::class, 'modifierBarre'])->name('ventes.barres.update');
     });
 
     Route::middleware('permission:ventes.annuler')->group(function () {

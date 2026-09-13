@@ -50,6 +50,17 @@
         document.addEventListener('input', function (e) {
             if (e.target.matches('[data-montant]')) formaterMontantEnDirect(e.target);
         });
+
+        // Ouvre la facture PDF dans un nouvel onglet et déclenche directement
+        // l'impression (visionneuse PDF native du navigateur) — évite à un
+        // utilisateur non-informaticien de devoir chercher le bouton
+        // "imprimer" à l'intérieur du PDF une fois ouvert.
+        function imprimerFacture(url) {
+            const fenetre = window.open(url, '_blank');
+            if (fenetre) {
+                fenetre.addEventListener('load', () => fenetre.print());
+            }
+        }
     </script>
     @stack('scripts')
     @include('partials.pwa')
@@ -57,8 +68,19 @@
     <script>
         @if (session('status'))
             window.addEventListener('DOMContentLoaded', () => Swal.fire({
-                icon: 'success', text: @json(session('status')), timer: 2500, showConfirmButton: false,
-            }));
+                icon: 'success',
+                text: @json(session('status')),
+                @if (session('facture_url'))
+                    confirmButtonText: 'Imprimer la facture',
+                    showCancelButton: true,
+                    cancelButtonText: 'Fermer',
+                @else
+                    timer: 2500,
+                    showConfirmButton: false,
+                @endif
+            })@if (session('facture_url')).then((resultat) => {
+                if (resultat.isConfirmed) imprimerFacture(@json(session('facture_url')));
+            })@endif);
         @endif
         @if (session('error'))
             window.addEventListener('DOMContentLoaded', () => Swal.fire({

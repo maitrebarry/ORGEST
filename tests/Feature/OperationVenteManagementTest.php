@@ -88,6 +88,37 @@ class OperationVenteManagementTest extends TestCase
         $this->assertSame($montantAttendu, $vente->montant_total);
     }
 
+    public function test_modifier_barre_recalculates_montant_vente_and_total(): void
+    {
+        $this->creerBaremeReel();
+        $gerant = $this->userWithRole('gerant');
+        $vendeur = Client::factory()->create();
+        $acheteur = Client::factory()->create();
+        $barre = $this->creerBarreEnStock($gerant, $vendeur, '84.26', '4.40');
+
+        $this->actingAs($gerant)->post('/ventes', [
+            'client_id' => $acheteur->id,
+            'date_operation' => now(),
+            'prix_base' => 82000,
+            'barres_ids' => [$barre->id],
+        ]);
+        $vente = OperationVente::first();
+
+        $response = $this->actingAs($gerant)->patch("/ventes/{$vente->id}/barres/{$barre->id}", [
+            'densite_tronquee' => '19,15',
+            'carat' => '23,60',
+            'prix_unitaire_vente' => '81 000',
+        ]);
+        $response->assertRedirect();
+
+        $barre->refresh();
+        $vente->refresh();
+        $this->assertSame('81000.00', $barre->prix_unitaire_vente);
+        // montant = poids (84.26) x prix_unitaire_vente (81000) = 6 825 060.00
+        $this->assertSame('6825060.00', $barre->montant_vente);
+        $this->assertSame('6825060.00', $vente->montant_total);
+    }
+
     public function test_rejects_the_whole_operation_if_a_selected_barre_is_no_longer_available(): void
     {
         $this->creerBaremeReel();

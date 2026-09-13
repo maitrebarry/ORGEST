@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOperationAchatRequest;
 use App\Models\BaremeVersion;
+use App\Models\BarreAchat;
 use App\Models\Client;
 use App\Models\JourneeFinanciere;
 use App\Models\MouvementFinancier;
@@ -149,7 +150,9 @@ class OperationAchatController extends Controller
             return back()->withErrors(['montant' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'Paiement enregistré avec succès.');
+        return back()
+            ->with('status', 'Paiement enregistré avec succès.')
+            ->with('facture_url', route('achats.pdf', $achat));
     }
 
     public function pdf(OperationAchat $achat)
@@ -159,5 +162,32 @@ class OperationAchatController extends Controller
         $pdf = Pdf::loadView('pdf.achat', ['achat' => $achat])->setPaper('a4', 'portrait');
 
         return $pdf->stream('facture-achat-'.$achat->numero.'.pdf');
+    }
+
+    public function modifierBarre(Request $request, OperationAchat $achat, BarreAchat $barre): RedirectResponse
+    {
+        $request->merge([
+            'densite_tronquee' => str_replace([' ', ','], ['', '.'], (string) $request->input('densite_tronquee')),
+            'carat' => str_replace([' ', ','], ['', '.'], (string) $request->input('carat')),
+            'prix_unitaire' => str_replace([' ', ','], ['', '.'], (string) $request->input('prix_unitaire')),
+        ]);
+        $request->validate([
+            'densite_tronquee' => ['required', 'numeric', 'min:0'],
+            'carat' => ['required', 'numeric', 'min:0'],
+            'prix_unitaire' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        try {
+            $achat->corrigerBarre(
+                $barre,
+                (string) $request->input('densite_tronquee'),
+                (string) $request->input('carat'),
+                (string) $request->input('prix_unitaire')
+            );
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['barre' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'Barre modifiée avec succès.');
     }
 }
