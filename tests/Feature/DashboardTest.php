@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\BaremeVersion;
+use App\Models\Bureau;
 use App\Models\Client;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -31,6 +32,27 @@ class DashboardTest extends TestCase
         $response->assertSee("Ventes aujourd'hui", false);
         $response->assertSee('Solde disponible');
         $response->assertSee('Utilisateurs actifs');
+    }
+
+    public function test_users_card_counts_only_active_users_of_the_own_bureau(): void
+    {
+        $bureauA = Bureau::create(['nom' => 'Bureau A', 'actif' => true]);
+        $bureauB = Bureau::create(['nom' => 'Bureau B', 'actif' => true]);
+
+        $proprietaire = $this->userWithRole('proprietaire');
+        $proprietaire->update(['bureau_id' => $bureauA->id]);
+
+        // Comptés : le propriétaire lui-même + un gérant actif du bureau A.
+        $this->userWithRole('gerant')->update(['bureau_id' => $bureauA->id]);
+        // Non comptés : gérant inactif du bureau A, propriétaire d'un autre
+        // bureau, superadmin (sans bureau).
+        $this->userWithRole('gerant')->update(['bureau_id' => $bureauA->id, 'actif' => false]);
+        $this->userWithRole('proprietaire')->update(['bureau_id' => $bureauB->id]);
+        $this->userWithRole('superadmin');
+
+        $this->actingAs($proprietaire)->get('/')
+            ->assertOk()
+            ->assertViewHas('usersCount', 2);
     }
 
     public function test_gerant_does_not_see_the_users_card(): void

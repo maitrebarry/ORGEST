@@ -63,7 +63,11 @@ class DashboardController extends Controller
         }
 
         if ($user->can('utilisateurs.voir')) {
+            // User n'a pas de global scope bureau : sans ce filtre explicite
+            // (comme dans UserController::index), on compterait aussi les
+            // comptes des AUTRES bureaux.
             $data['usersCount'] = User::where('actif', true)
+                ->where('bureau_id', $user->bureau_id)
                 ->whereDoesntHave('roles', fn ($q) => $q->where('name', 'superadmin'))
                 ->count();
         }
