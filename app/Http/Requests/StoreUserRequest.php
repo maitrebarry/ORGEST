@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\NormaliseTelephone;
 use App\Rules\MalianPhone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,9 +11,16 @@ use Spatie\Permission\Models\Role;
 
 class StoreUserRequest extends FormRequest
 {
+    use NormaliseTelephone;
+
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->normaliserTelephone('phone');
     }
 
     public function rules(): array

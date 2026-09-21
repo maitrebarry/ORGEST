@@ -85,6 +85,46 @@ class BureauManagementTest extends TestCase
         $this->assertTrue($proprietaire->hasDirectPermission('achats.creer'));
     }
 
+    public function test_proprietaire_telephone_saisi_avec_espaces_ou_indicatif_est_enregistre_en_huit_chiffres(): void
+    {
+        $superadmin = $this->superadmin();
+
+        foreach (['76 00 00 01' => '76000001', '+223 76-00-00-02' => '76000002'] as $saisie => $attendu) {
+            $this->actingAs($superadmin)->post('/bureaux', [
+                'nom' => 'Bureau '.$attendu,
+                'pays' => 'Mali',
+                'proprietaire_nom' => 'Amadou Diallo',
+                'proprietaire_telephone' => $saisie,
+                'proprietaire_password' => 'MotDePasse1!',
+                'proprietaire_password_confirmation' => 'MotDePasse1!',
+            ])->assertSessionHasNoErrors();
+
+            $this->assertDatabaseHas('users', ['phone' => $attendu]);
+        }
+    }
+
+    public function test_proprietaire_telephone_deja_utilise_est_refuse_meme_avec_des_espaces(): void
+    {
+        $superadmin = $this->superadmin();
+        User::factory()->create(['phone' => '74745669']);
+
+        $response = $this->actingAs($superadmin)->post('/bureaux', [
+            'nom' => 'Bureau doublon',
+            'pays' => 'Mali',
+            'proprietaire_nom' => 'Doublon',
+            'proprietaire_telephone' => '74 74 56 69',
+            'proprietaire_password' => 'MotDePasse1!',
+            'proprietaire_password_confirmation' => 'MotDePasse1!',
+        ]);
+
+        $response->assertSessionHasErrors('proprietaire_telephone');
+        $this->assertStringContainsString(
+            'déjà utilisée',
+            session('errors')->first('proprietaire_telephone')
+        );
+        $this->assertDatabaseMissing('bureaux', ['nom' => 'Bureau doublon']);
+    }
+
     public function test_proprietaire_can_only_update_their_own_bureau_logo(): void
     {
         $bureau = Bureau::create(['nom' => 'Bureau A', 'actif' => true]);

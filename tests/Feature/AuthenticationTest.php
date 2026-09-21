@@ -25,6 +25,19 @@ class AuthenticationTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_user_can_login_with_phone_typed_with_spaces_or_country_code(): void
+    {
+        $user = User::factory()->create(['phone' => '74745669', 'password' => 'password']);
+
+        foreach (['74 74 56 69', '+223 74 74 56 69'] as $saisie) {
+            $this->post('/login', ['phone' => $saisie, 'password' => 'password'])
+                ->assertRedirect(route('home'));
+            $this->assertAuthenticatedAs($user);
+
+            $this->post('/logout');
+        }
+    }
+
     public function test_user_cannot_login_with_wrong_password(): void
     {
         User::factory()->create(['phone' => '70000000', 'password' => 'password']);
