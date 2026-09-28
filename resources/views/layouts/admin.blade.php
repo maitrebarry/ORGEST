@@ -87,7 +87,7 @@
                 icon: 'success',
                 text: @json(session('status')),
                 @if (session('facture_url'))
-                    confirmButtonText: 'Imprimer la facture',
+                    confirmButtonText: @json('Imprimer '.session('facture_label', 'la facture')),
                     showCancelButton: true,
                     cancelButtonText: 'Fermer',
                 @else

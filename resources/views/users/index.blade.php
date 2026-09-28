@@ -83,10 +83,12 @@
                                 @endcan
                                 @can('utilisateurs.supprimer')
                                     @if (! $user->hasRole('superadmin') && $user->id !== auth()->id())
-                                        <form method="POST" action="{{ route('users.destroy', $user) }}" class="d-inline delete-user-form" data-name="{{ $user->name }}">
+                                        <form method="POST" action="{{ route('users.destroy', $user) }}" class="d-inline delete-user-form"
+                                              data-name="{{ $user->name }}" data-role="{{ $user->roles->first()?->name }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-dark btn-sm" title="Supprimer définitivement">
+                                            <button type="submit" class="btn btn-dark btn-sm"
+                                                    title="{{ $user->hasRole('proprietaire') ? 'Supprimer ce propriétaire ET tout son bureau' : 'Supprimer définitivement' }}">
                                                 <i class="bx bx-trash"></i>
                                             </button>
                                         </form>
@@ -261,12 +263,19 @@
             e.preventDefault();
             const form = this;
             const name = $(this).data('name');
+            const estProprietaire = $(this).data('role') === 'proprietaire';
+            const nomEchappe = $('<div>').text(name).html();
 
             Swal.fire({
-                title: 'Supprimer définitivement ?',
-                html: 'Cette action supprimera définitivement le compte de <b>' + $('<div>').text(name).html() + '</b>. '
-                    + 'C\'est irréversible.<br><br>'
-                    + 'Pour confirmer, saisissez le nom exact :',
+                title: estProprietaire ? 'Supprimer ce propriétaire ET tout son bureau ?' : 'Supprimer définitivement ?',
+                html: estProprietaire
+                    ? 'Cette action va supprimer <b>' + nomEchappe + '</b> ainsi que <b>tout son bureau</b> : '
+                        + 'gérants, clients, achats, ventes, crédits, trésorerie, comptes clients — absolument tout. '
+                        + '<b>Rien ne sera récupérable, même par un superadmin.</b><br><br>'
+                        + 'Pour confirmer, saisissez le nom exact :'
+                    : 'Cette action supprimera définitivement le compte de <b>' + nomEchappe + '</b>. '
+                        + 'C\'est irréversible.<br><br>'
+                        + 'Pour confirmer, saisissez le nom exact :',
                 input: 'text',
                 inputPlaceholder: name,
                 icon: 'warning',

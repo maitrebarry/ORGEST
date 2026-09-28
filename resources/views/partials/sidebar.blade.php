@@ -80,6 +80,15 @@
             </li>
         @endcan
 
+        @can('comptes_clients.voir')
+            <li>
+                <a href="{{ route('comptes-clients.index') }}" class="{{ request()->routeIs('comptes-clients.*') ? 'mm-active' : '' }}">
+                    <div class="parent-icon"><i class='bx bx-notepad'></i></div>
+                    <div class="menu-title">Comptes clients</div>
+                </a>
+            </li>
+        @endcan
+
         @can('bareme.voir')
             <li>
                 <a href="{{ route('baremes.index') }}" class="{{ request()->routeIs('baremes.*') ? 'mm-active' : '' }}">

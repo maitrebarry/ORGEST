@@ -18,6 +18,7 @@ class MouvementFinancier extends Model
         'credit_remboursement' => 'Remboursement de crédit',
         'credit_reliquat' => 'Reliquat de crédit',
         'credit_annulation' => 'Annulation de crédit',
+        'compte_client' => 'Compte client',
         'autre' => 'Dépense',
     ];
 

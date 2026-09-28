@@ -8,6 +8,7 @@ use App\Http\Requests\StoreApprovisionnementRequest;
 use App\Http\Requests\StoreMouvementFinancierRequest;
 use App\Models\JourneeFinanciere;
 use App\Models\MouvementFinancier;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -88,7 +89,24 @@ class TresorerieController extends Controller
         $devise = $journee->bureau?->devise_symbole ?? config('pays_devises.Mali.symbole');
         $message = 'Journée clôturée. Solde théorique : '.number_format((float) $journee->solde_theorique_fermeture, 0, ',', ' ').' '.$devise.', écart : '.number_format((float) $ecart, 0, ',', ' ').' '.$devise.'.';
 
-        return redirect()->route('tresorerie.index')->with('status', $message);
+        return redirect()->route('tresorerie.index')
+            ->with('status', $message)
+            ->with('facture_url', route('tresorerie.pdf', $journee))
+            ->with('facture_label', 'la fiche de clôture');
+    }
+
+    /**
+     * Récapitulatif imprimable de toutes les transactions (mouvements) d'une
+     * journée financière — déclenché automatiquement à la clôture (voir
+     * fermer() ci-dessus), et réimprimable à tout moment depuis l'historique.
+     */
+    public function pdf(JourneeFinanciere $journee)
+    {
+        $journee->load('mouvements.user', 'ouvrePar', 'fermePar', 'bureau');
+
+        $pdf = Pdf::loadView('pdf.journee', ['journee' => $journee])->setPaper('a4', 'portrait');
+
+        return $pdf->stream('cloture-journee-'.$journee->date_ouverture->format('Y-m-d').'-'.$journee->id.'.pdf');
     }
 
     public function destroyMouvement(MouvementFinancier $mouvement): RedirectResponse

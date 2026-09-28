@@ -108,6 +108,31 @@ class UserController extends Controller
             return back()->with('error', 'Vous ne pouvez supprimer que les gérants de votre bureau.');
         }
 
+        // Supprimer un propriétaire supprime IRRÉVERSIBLEMENT tout son bureau
+        // (gérants, clients, achats, ventes, crédits, trésorerie, comptes
+        // clients…) — décision explicite du client, aucune sauvegarde ni
+        // suppression douce. Le garde ci-dessus rend déjà ce cas inatteignable
+        // pour un non-superadmin (un propriétaire n'a jamais le rôle
+        // « gerant »), mais on le revérifie explicitement ici : cette action
+        // est trop destructrice pour dépendre uniquement d'un effet de bord.
+        if ($user->hasRole('proprietaire')) {
+            if (! $acteur->hasRole('superadmin')) {
+                return back()->with('error', 'Seul un superadmin peut supprimer un propriétaire — et, avec lui, tout son bureau.');
+            }
+
+            $bureau = $user->bureau;
+
+            if ($bureau) {
+                $nomBureau = $bureau->nom;
+                $bureau->supprimerDefinitivementAvecToutesSesDonnees();
+
+                return redirect()->route('users.index')->with(
+                    'status',
+                    "Propriétaire supprimé : le bureau « {$nomBureau} » et toutes ses données ont été définitivement et irréversiblement effacés."
+                );
+            }
+        }
+
         $user->delete();
 
         return redirect()->route('users.index')->with('status', 'Utilisateur supprimé avec succès.');

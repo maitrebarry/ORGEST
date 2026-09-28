@@ -5,6 +5,7 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\BaremeController;
 use App\Http\Controllers\BureauController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\CompteClientController;
 use App\Http\Controllers\CreditController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OperationAchatController;
@@ -127,8 +128,23 @@ Route::middleware('auth')->group(function () {
         Route::patch('/credits/{credit}/annuler', [CreditController::class, 'annuler'])->name('credits.annuler');
     });
 
+    Route::middleware('permission:comptes_clients.voir')->group(function () {
+        Route::get('/comptes-clients', [CompteClientController::class, 'index'])->name('comptes-clients.index');
+        Route::get('/comptes-clients/{client}', [CompteClientController::class, 'show'])->name('comptes-clients.show');
+        Route::get('/comptes-clients/{client}/pdf', [CompteClientController::class, 'pdf'])->name('comptes-clients.pdf');
+    });
+
+    Route::middleware('permission:comptes_clients.creer')->group(function () {
+        Route::post('/comptes-clients/{client}/mouvements', [CompteClientController::class, 'store'])->name('comptes-clients.mouvements.store');
+    });
+
+    Route::middleware('permission:comptes_clients.annuler')->group(function () {
+        Route::patch('/comptes-clients/mouvements/{mouvement}/annuler', [CompteClientController::class, 'annuler'])->name('comptes-clients.mouvements.annuler');
+    });
+
     Route::middleware('permission:fonds.voir')->group(function () {
         Route::get('/tresorerie', [TresorerieController::class, 'index'])->name('tresorerie.index');
+        Route::get('/tresorerie/{journee}/pdf', [TresorerieController::class, 'pdf'])->name('tresorerie.pdf');
     });
 
     Route::middleware('permission:fonds.gerer')->group(function () {

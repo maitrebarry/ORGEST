@@ -58,6 +58,9 @@ return [
         'credits.creer',
         'credits.gerer',
         'credits.annuler',
+        'comptes_clients.voir',
+        'comptes_clients.creer',
+        'comptes_clients.annuler',
     ],
 
     // Gérant : subalterne créé par le propriétaire, gère l'activité
@@ -81,5 +84,7 @@ return [
         'credits.voir',
         'credits.creer',
         'credits.gerer',
+        'comptes_clients.voir',
+        'comptes_clients.creer',
     ],
 ];
