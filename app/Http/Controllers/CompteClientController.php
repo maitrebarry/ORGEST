@@ -15,7 +15,10 @@ class CompteClientController extends Controller
     public function index(Request $request): View
     {
         $recherche = $request->input('recherche');
-        $avecMouvementsSeulement = $request->boolean('avec_mouvements_seulement', true);
+        // Faux par défaut : au premier chargement, aucun client n'a encore
+        // de mouvement — un filtre actif par défaut afficherait une liste
+        // vide et donnerait l'impression que les clients ne se chargent pas.
+        $avecMouvementsSeulement = $request->boolean('avec_mouvements_seulement', false);
 
         $clients = Client::query()
             ->when($recherche, fn ($q) => $q->where(fn ($q2) => $q2
