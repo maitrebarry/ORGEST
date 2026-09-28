@@ -64,7 +64,11 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-check mt-4">
-                        <input type="checkbox" class="form-check-input" id="avecMouvements" name="avec_mouvements_seulement" value="1" @checked(request()->boolean('avec_mouvements_seulement', true))>
+                        {{-- L'input caché est indispensable : une case DÉCOCHÉE n'envoie
+                             aucune valeur en HTML, donc sans lui le filtre resterait
+                             bloqué sur "actif" même en décochant la case. --}}
+                        <input type="hidden" name="avec_mouvements_seulement" value="0">
+                        <input type="checkbox" class="form-check-input" id="avecMouvements" name="avec_mouvements_seulement" value="1" @checked(request()->boolean('avec_mouvements_seulement', false))>
                         <label class="form-check-label" for="avecMouvements">N'afficher que les clients ayant déjà un mouvement</label>
                     </div>
                 </div>
