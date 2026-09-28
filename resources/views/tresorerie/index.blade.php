@@ -196,6 +196,7 @@
                         <th>SOLDE PHYSIQUE</th>
                         <th>ÉCART</th>
                         <th>OUVERTE PAR</th>
+                        <th width="6%">ACTION</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -207,6 +208,11 @@
                             <td>{{ $fmt($journee->solde_physique_fermeture) }}</td>
                             <td class="{{ (float) $journee->ecart_fermeture != 0 ? 'text-danger fw-bold' : '' }}">{{ $fmt($journee->ecart_fermeture) }}</td>
                             <td>{{ $journee->ouvrePar?->name ?? '—' }}</td>
+                            <td>
+                                <a href="{{ route('tresorerie.pdf', $journee) }}" target="_blank" class="btn btn-light btn-sm" title="Imprimer la fiche de clôture">
+                                    <i class='bx bx-printer'></i>
+                                </a>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
